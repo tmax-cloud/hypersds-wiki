@@ -1,3 +1,4 @@
+---
 name: assign-automation
 on:
   pull_request:
