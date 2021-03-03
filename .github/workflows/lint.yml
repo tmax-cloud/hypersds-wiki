@@ -1,4 +1,4 @@
-name: hypersds-wiki
+name: lint
 on:
   push:
     branches:
@@ -14,10 +14,3 @@ jobs:
           file_or_dir: .
           format: github
           strict: false
-  size-label:
-    runs-on: ubuntu-latest
-    steps:
-      - name: size-label
-        uses: "pascalgn/size-label-action@v0.4.2"
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

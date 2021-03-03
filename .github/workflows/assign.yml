@@ -1,12 +1,18 @@
 name: assign-automation
 on:
   pull_request:
-    types: [opened, ready_for_review]
 jobs:
   assign:
     runs-on: ubuntu-latest
     steps:
-      - name: assign
+      - name: assignee
         uses: hkusu/review-assign-action@v1
         with:
           assignees: ${{ github.actor }}
+  size-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: size-label
+        uses: "pascalgn/size-label-action@v0.4.2"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
