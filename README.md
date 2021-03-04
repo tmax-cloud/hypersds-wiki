@@ -1,3 +1,33 @@
-# CK2-4 Wiki
+# HyperSDS Wiki
 
-클라우드 스토리지팀의 Wiki 용 repository 입니다. 더 많은 가이드는 [Wiki](https://github.com/tmax-cloud/ck2-4/wiki) 탭 참조 부탁드립니다.
+Welcome to the cloud storage team wiki!
+
+## 가이드 문서 목록
+
+위키페이지 내 가이드 문서 목록입니다.
+
+## Public Repositories
+
+아래는 팀에서 관리하는 public repository 모음입니다.
+
+### 스토리지 서비스 개발
+
+#### Hypercloud
+
+- [hypersds-operator](https://github.com/tmax-cloud/hypersds-operator)
+- [hypersds-provisioner](https://github.com/tmax-cloud/hypersds-provisioner)
+- [hcsctl](https://github.com/tmax-cloud/hypercloud-sds)
+
+#### VM Image
+
+- [kubevirt-image-service](https://github.com/tmax-cloud/kubevirt-image-service)
+- [kubevirt-image-service-exporter](https://github.com/tmax-cloud/kubevirt-image-service-exporter)
+
+### 설치 가이드
+
+- [rook 설치 가이드](https://github.com/tmax-cloud/install-rookceph)
+- [velero 설치 가이드](https://github.com/tmax-cloud/install-velero)
+
+## Archived Repositories
+
+- [hypercloud-storage-installer](https://github.com/tmax-cloud/hypercloud-storage-installer)
