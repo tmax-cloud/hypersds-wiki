@@ -6,6 +6,8 @@ Welcome to the cloud storage team wiki!
 
 위키페이지 내 가이드 문서 목록입니다.
 
+- nfs provisioner 배포 및 사용 가이드
+
 ## Public Repositories
 
 아래는 팀에서 관리하는 public repository 모음입니다.

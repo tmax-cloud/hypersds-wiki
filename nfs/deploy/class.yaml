@@ -1,0 +1,12 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs
+# provisioner name must match deployment's env PROVISIONER_NAME'
+provisioner: k8s-sigs.io/nfs-subdir-external-provisioner
+parameters:
+  # set 'retain' if you want to save the directory
+  onDelete: delete
+  # you can set nfs subdirectory path pattern
+  pathPattern: "${.PVC.namespace}/${.PVC.name}"
