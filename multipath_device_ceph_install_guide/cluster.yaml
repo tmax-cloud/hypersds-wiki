@@ -1,0 +1,145 @@
+#################################################################################################################
+# Define the settings for the rook-ceph cluster with common settings for a production cluster.
+# All nodes with available raw devices will be used for the Ceph cluster. At least three nodes are required
+# in this example. See the documentation for more details on storage settings available.
+
+# For example, to create the cluster:
+#   kubectl create -f common.yaml
+#   kubectl create -f operator.yaml
+#   kubectl create -f cluster.yaml
+#################################################################################################################
+
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  cephVersion:
+    image: ceph/ceph:v15.2.4
+    allowUnsupported: false
+  dataDirHostPath: /var/lib/rook
+  skipUpgradeChecks: false
+  continueUpgradeAfterChecksEvenIfNotHealthy: false
+  mon:
+    # Set the amount of mons to be started
+    # Recommendation: Use odd numbers (ex 3, 5)
+    count: 1
+    allowMultiplePerNode: false
+  mgr:
+    modules:
+    - name: pg_autoscaler
+      enabled: true
+  dashboard:
+    enabled: true
+    ssl: true
+  # enable prometheus alerting for cluster
+  monitoring:
+    # requires Prometheus to be pre-installed
+    enabled: false
+    rulesNamespace: rook-ceph
+  network:
+    # enable host networking
+    # provider: host
+  crashCollector:
+    disable: false
+  annotations:
+  labels:
+  resources:
+# Set the requests and limits for osd, mon, mgr
+#    osd:
+#      limits:
+#        cpu: "2"
+#        memory: "4096Mi"
+#      requests:
+#        cpu: "2"
+#        memory: "4096Mi"
+#    mon:
+#      limits:
+#        cpu: "2"
+#        memory: "2048Mi"
+#      requests:
+#        cpu: "2"
+#        memory: "2048Mi"
+#    mgr:
+#      limits:
+#        cpu: "1"
+#        memory: "1024Mi"
+#      requests:
+#        cpu: "1"
+#        memory: "1024Mi"
+# The option to automatically remove OSDs that are out and are safe to destroy.
+  removeOSDsIfOutAndSafeToRemove: false
+  priorityClassNames:
+    all: rook-ceph-default-priority-class
+################################
+#### 기존과 다름
+  storage:
+    storageClassDeviceSets:
+    # 100Gi pvc 2개 생성하고, osd 2개 생성하는 set
+    - name: set1
+      count: 2 # osd 및 pvc 생성 개수
+      resources: #osd resource 제한 설정, 기존과 달리 osd에 resource 제한은 여기에서 줘야함
+        requests:
+          cpu: "2"
+          memory: "4Gi"
+        limits:
+          cpu: "2"
+          memory: "4Gi"
+      portable: false
+      encrypted: false
+      volumeClaimTemplates: #pvc spec 명시
+      - metadata:
+          name: data #이와 같이 하면, 나중에 osd가 생성될 pvc는 다음과 같은 이름으로 설정됩니다. set1-data-*-******
+        spec:
+          resources:
+            requests:
+              storage: 100Gi #100Gi pvc 생성
+          storageClassName: local-storage #storageclass 명시
+          volumeMode: Block
+          accessModes:
+          - ReadWriteOnce
+    # 50Gi pvc 1개 생성하고, osd 1개 생성하는 set
+    - name: set2
+      count: 1 # osd 및 pvc 생성 개수
+      resources: #osd resource 제한 설정, 기존과 달리 osd에 resource 제한은 여기에서 줘야함
+        requests:
+          cpu: "2"
+          memory: "4Gi"
+        limits:
+          cpu: "2"
+          memory: "4Gi"
+      portable: false
+      encrypted: false
+      volumeClaimTemplates: #pvc spec 명시
+      - metadata:
+          name: data #이와 같이 하면, 나중에 osd가 생성될 pvc는 다음과 같은 이름으로 설정됩니다. set2-data-*-******
+        spec:
+          resources:
+            requests:
+              storage: 50Gi #50Gi pvc 생성
+          storageClassName: local-storage #storageclass 명시
+          volumeMode: Block
+          accessModes:
+          - ReadWriteOnce
+
+################################
+  disruptionManagement:
+    managePodBudgets: false
+    osdMaintenanceTimeout: 30
+    manageMachineDisruptionBudgets: false
+    machineDisruptionBudgetNamespace: openshift-machine-api
+
+# healthChecks
+# Valid values for daemons are 'mon', 'osd', 'status'
+  healthCheck:
+    daemonHealth:
+      mon:
+        disabled: false
+        interval: 45s
+      osd:
+        disabled: false
+        interval: 60s
+      status:
+        disabled: false
+        interval: 60s

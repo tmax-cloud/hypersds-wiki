@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: example-pv-volume
+spec:
+  capacity:
+    storage: 100Mi # directory 혹은 disk 크기
+  volumeMode: Block
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain # device 는 수동으로 초기화해야 하므로 Retain 으로 두었습니다. pvc 를 삭제하는 경우 pv status 는 failed 가 되지만, 이는 큰 문제가 아니며 관리자가 해당 pv 와 mapping 된 device 를 수동으로 초기화한 후 pv 를 삭제하시면 됩니다.
+  storageClassName: local-storage # storageclass 명시
+  local:
+    path: /dev/mapper/360000000000000000e00000000010001 # 백엔드 스토리지용으로 사용할 특정 노드의 특정 dir 혹은 device
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - node3 # kubectl get nodes 에서 해당하는 node name
