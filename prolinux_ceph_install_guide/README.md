@@ -9,6 +9,7 @@
 
 ## ceph 설치
 
+모든 설치는 root권한으로 실행해야함
 1. cephadm image 다운로드 (ceph octopus 최신 branch에 최근까지 버그가 있었으나 이제 해결되었기 때문에 공식 docs url에서 가져오면 됨)
 	```shell
 	curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm
@@ -51,7 +52,7 @@
 3. ceph 설치
 	- 설치 전 ceph를 설치할 노드들에 hostname 설정이 되어 있어야합니다. 제대로 되어 있지 않으면 설치 실패함
 	```shell
-		sudo hostname localhost #host 이름 localhost로 설정
+		hostname localhost #host 이름 localhost로 설정
 	```
 	- bootstrap 명령어를 이용한 ceph 설치 (만약 위의 조건들을 제대로 지키지 않았다면, 여기서 설치가 실패합니다)
 		```shell
