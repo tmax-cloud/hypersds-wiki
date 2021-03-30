@@ -2,6 +2,13 @@
 
 - 해당 문서는 multipath device 위에 local pv를 생성한 후, 해당 pv 위에 osd를 생성하는 방법을 설명합니다.
 
+### 주의 사항
+- centos, prolinux 환경에서는 해당 방법으로 osd를 성공적으로 생성하기 위해 rook operator를 배포하는 operator.yaml에서 특정 feature를 키셔야합니다.
+```yaml
+        - name: ROOK_HOSTPATH_REQUIRES_PRIVILEGED
+          value: "true" #true로 변경
+```
+
 ### local pv 생성 방법
 
 1. local-storage storageclass 배포
