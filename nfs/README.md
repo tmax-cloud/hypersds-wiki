@@ -13,10 +13,11 @@
 ## Prerequisites
 
 1. 본 가이드에서는 이미 NFS 서버가 존재하며 NFS provisioner를 배포할 k8s 환경과 통신이 가능함을 가정합니다.
-2. NFS 서버사용을 위해 사전에 필요한 접속 정보들은 아래와 같습니다.
+2. NFS를 사용할 k8s 클러스터 노드에는 `nfs-utils` 패키지 설치가 필요합니다.
+3. NFS 서버사용을 위해 사전에 필요한 접속 정보들은 아래와 같습니다.
     - NFS server hostname
     - NFS server exported path
-3. NFS server exported path 내에 생성될 sub directory의 패턴에 대해 미리 정의 및 논의가 필요합니다.
+4. NFS server exported path 내에 생성될 sub directory의 패턴에 대해 미리 정의 및 논의가 필요합니다.
     - **helm 차트를 사용할 경우에는 sub directory 패턴을 사용자 지정할 수 없습니다.**
       - 해당 기능이 master branch에 구현 되었으나 아직 릴리즈되지 않아서 릴리즈 후 재 가이드 예정입니다.
     - helm 차트 사용시 지정된 **기본값**: `{namespace-pvcName-pvName}/`
