@@ -10,9 +10,9 @@
 ## ceph 설치
 
 모든 설치는 root권한으로 실행해야함
-1. cephadm image 다운로드 (ceph octopus 최신 branch에 최근까지 버그가 있었으나 이제 해결되었기 때문에 공식 docs url에서 가져오면 됨)
+1. cephadm image 다운로드 (ceph octopus 최신 branch에 다시 버그가 발생하는 것으로 보여 v15.2.8로 버전 고정)
 	```shell
-	curl --silent --remote-name --location https://github.com/ceph/ceph/raw/octopus/src/cephadm/cephadm
+	curl --silent --remote-name --location https://github.com/ceph/ceph/raw/v15.2.8/src/cephadm/cephadm
 	chmod +x cephadm
 	```
 2. ceph-common 설치
