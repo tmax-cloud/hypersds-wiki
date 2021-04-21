@@ -2,6 +2,13 @@
 
 기존에 사용하는 NFS 서버로 K8s cluster의 pv, pvc를 dynamic provisioning 하는 방법으로 본 가이드에 사용하는 nfs provisioner는 kubernetes-sigs group 내에서 개발 및 관리되고 있는 [NFS Subdir External Provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner) 입니다. 
 
+## 목차
+
+- [전제조건](#Prerequisites)
+- [배포 가이드](#배포-가이드)
+- [사용 가이드](#사용-가이드)
+- [삭제 가이드](#삭제-가이드)
+
 ## 구성 요소 및 버전
 
 - NFS Subdir External Provisioner v4.0.0
@@ -13,7 +20,8 @@
 ## Prerequisites
 
 1. 본 가이드에서는 이미 NFS 서버가 존재하며 NFS provisioner를 배포할 k8s 환경과 통신이 가능함을 가정합니다.
-2. NFS를 사용할 k8s 클러스터 노드에는 `nfs-utils` 패키지 설치가 필요합니다.
+2. k8s 클러스터의 모든 노드에는 `nfs-utils` 패키지 설치가 필요합니다.
+    - taint 나 toleration property를 사용하는 경우에는 nfs 서버를 통해 volume provisioning 기능 제공할 k8s 노드에만 해당 패키지를 설치해주셔도 됩니다.
 3. NFS 서버사용을 위해 사전에 필요한 접속 정보들은 아래와 같습니다.
     - NFS server hostname
     - NFS server exported path
@@ -115,6 +123,160 @@ parameters:
 
 ``` shell
 $ kubectl apply -f deploy/class.yaml
+```
+
+### 여러개의 NFS 서버를 사용하는 경우
+
+> 볼륨 프로비저닝을 위한 NFS 서버를 추가하거나, 여러개의 NFS 서버를 사용하고자 하는 경우에는 NFS 서버 마다 provisioner 와 storage class 추가 생성이 필요합니다.
+
+#### Helm 사용할 경우
+
+- 이미 배포된 namespace와 rbac 관련 리소스는 그대로 사용하실 수 있습니다.
+- unique한 nfs provisioner 이름 지정이 필요하고, 사용할 nfs 서버 정보를 기입하여 주시면 됩니다.
+
+``` shell
+$ helm install nfs-provisioner-2 nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
+    --set nfs.server=192.168.7.17 \
+    --set nfs.path=/mnt/nfs-shared-dir \
+    --set storageClass.name=nfs2 \
+    --set storageClass.archiveOnDelete=false \
+    --set storageClass.provisionerName=nfs-provisioner-2 \
+    --set serviceAccount.create=false \
+    --set serviceAccount.name=nfs-client-provisioner \
+    --set rbac.create=false \
+    --namespace nfs
+```
+
+#### Helm 사용하지 않는 경우
+
+1. 이전 과정에서 배포된 namespace와 rbac 관련 리소스는 그대로 사용하실 수 있습니다. 별도로 추가 생성은 필요하지 않습니다.
+2. `deployment.yaml` 에서 다른 nfs provisioner와 겹치지 않은 unique 한 provisioner 이름과 사용할 nfs server 정보를 기입합니다.
+
+``` yaml
+# deploy/deployment.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # k8s deployment 이름 변경 필요
+  name: nfs-client-provisioner2
+  labels:
+    app: nfs-client-provisioner
+# (중략) ...
+          env:
+            - name: PROVISIONER_NAME
+              # unique한 provisioner 이름으로 변경 필요
+              value: nfs-subdir-external-provisioner
+            - name: NFS_SERVER
+              # REPLACE with your nfs server
+              value: 172.22.4.222
+            - name: NFS_PATH
+              # REPLACE with your nfs exported path
+              value: /mnt/nfs-shared-dir
+      volumes:
+        - name: nfs-client-root
+          nfs:
+            # REPLACE with your nfs server
+            server: 172.22.4.222
+            # REPLACE with your nfs exported path
+            path: /mnt/nfs-shared-dir
+```
+
+``` shell
+$ kubectl apply -f deploy/deployment.yaml
+```
+
+3. `class.yaml` 에서 provisioner 이름을 `deployment.yaml` 에서 정의한 env `PROVISIONER_NAME` 값과 동일하게 기입합니다.
+
+``` yaml
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  # storage class 이름 변경 필요
+  name: nfs2
+# provisioner name must match deployment's env PROVISIONER_NAME'
+provisioner: nfs-subdir-external-provisioner
+parameters:
+  # set 'retain' if you want to save the directory
+  onDelete: delete
+  # you can set nfs subdirectory path pattern
+  pathPattern: "${.PVC.namespace}/${.PVC.name}"
+```
+
+``` shell
+$ kubectl apply -f deploy/class.yaml
+```
+
+### nfs mount option이 별도로 지정 필요한 경우
+
+- `deployment.yaml` 과 `class.yaml` 변경이 필요합니다.
+
+`deploymnet.yaml` 기본 설정의 경우에는 nfs provisioner 생성시에 nfs volume을 생성 하는데, 이 경우에는 `sec option`과 같은 nfs mount 옵션 설정이 불가합니다. nfs server 설정에 따라 nfs mount option 설정이 필요한 경우에는 nfs volume이 아닌 pv, pvc를 생성하는 것으로 `deploymnet.yaml` 수정이 필요합니다.
+
+``` yaml
+# deploy/deployment.yaml
+# (중략) ...
+      volumes:
+        - name: nfs-client-root
+          persistentVolumeClaim:
+            claimName: nfs-root-pvc
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-root-pv
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  mountOptions:
+    - sec=none
+  claimRef:
+    name: nfs-root-pvc
+    namespace: nfs
+  nfs:
+    # REPLACE with your nfs server
+    server: 192.168.7.16
+    # REPLACE with your nfs exported path
+    path: /mnt/nfs-shared-dir
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-root-pvc
+  namespace: nfs
+spec:
+  storageClassName: ""
+  volumeName: nfs-root-pv
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+```
+
+`class.yaml`에서는 추가 할 mountOption 기입이 필요합니다.
+
+``` yaml
+# deploy/class.yaml
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs
+# provisioner name must match deployment's env PROVISIONER_NAME'
+provisioner: k8s-sigs.io/nfs-subdir-external-provisioner
+parameters:
+  # set 'retain' if you want to save the directory
+  onDelete: delete
+  # you can set nfs subdirectory path pattern
+  pathPattern: "${.PVC.namespace}/${.PVC.name}"
+  mountOptions:
+    - sec=none
 ```
 
 ## 사용 가이드
