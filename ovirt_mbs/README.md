@@ -78,7 +78,7 @@
     
   - 설치 확인
     ```shell script
-    $ pip3 show cinderlib
+    $ pip3 show os-brick
     $ pip3 show ntlm-auth
     ```
     
