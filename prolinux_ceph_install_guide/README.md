@@ -68,120 +68,122 @@
 		$ ceph orch ls
 		$ ceph -s
 		```
-	5. 다른 노드를 ceph cluster에 추가 (기존 cephadm을 통한 ceph 설치 방법과 동일)
-		- 다음 방법을 통해 노드를 ceph cluster에 추가해야 해당 노드에 ceph daemon들을 추후 설치할 수 있습니다.
-		- 참고로 모니터는 5개, mgr은 2 or 3개?가 기본 설정이라 노드를 추가하면 자동으로 해당 노드들에 ceph daemon(mon, mgr)을 배포합니다. 단, mon 간의 quorum을 형성해야 하기 때문에 1,3,5와 같은 방식으로 추가됩니다.
-		- host 추가를 위해선 다음 작업을 통해 추가되는 노드에 ssh key 복사 필요
-			```shell
-			# ssh-copy-id -f -i /etc/ceph/ceph.pub root@*<new-host>*  
-			$ ssh-copy-id -f -i /etc/ceph/ceph.pub root@192.168.72.100
-			```
-		- 커맨드
-			```shell
-			# ceph orch host add <hostname> <IP>
-			$ ceph orch host add node1 192.168.72.100
-			```
-		- host 추가 확인
-			```shell
-			$ ceph orch host ls
-			```
-		- 참고
-			- host 추가로 mon이 추가되는 경우, 기본적으로 각 노드에 있는 `ceph.conf` 파일이 수정되지는 않습니다. (`ceph.conf` 파일에 통신하기 위한 mon addr들이 명시되어 있음)
-			- 각 노드에 있는 ceph daemon들이나, 이미 사용하고 있는 client의 경우는 내부적으로 mon의 추가를 인식하고, 내부적으로 저장하기 때문에 문제 없습니다.
-			- 그러나, 새로운 ceph client 생성시(재부팅 등의 경우도 포함)에는 `ceph.conf` 파일을 참조하기 때문에, 추가된 mon을 알지 못하며, `ceph.conf` 파일 내에 명시된 mon이 죽어 있는 경우는 연결이 되지 않는 경우가 발생할 수 있습니다.
-			- 따라서, mon 추가된 경우, 다음 명령어를 통해 `ceph.conf`를 재생성하고, 이를 client 연결시 사용하시길 바랍니다.
-				```shell
-				# config 파일 생성
-				$ ceph config generate-minimal-conf > ceph.conf
-				# admin 계정 ceph.client.admin.keyring 파일 생성
-				$ ceph auth get client.admin > ceph.client.admin.keyring
-				```
+---
+## ceph 추가 설정
+1. 다른 노드를 ceph cluster에 추가 (기존 cephadm을 통한 ceph 설치 방법과 동일)
+    - 다음 방법을 통해 노드를 ceph cluster에 추가해야 해당 노드에 ceph daemon들을 추후 설치할 수 있습니다.
+    - 참고로 모니터는 5개, mgr은 2 or 3개?가 기본 설정이라 노드를 추가하면 자동으로 해당 노드들에 ceph daemon(mon, mgr)을 배포합니다. 단, mon 간의 quorum을 형성해야 하기 때문에 1,3,5와 같은 방식으로 추가됩니다.
+    - host 추가를 위해선 다음 작업을 통해 추가되는 노드에 ssh key 복사 필요
+        ```shell
+        # ssh-copy-id -f -i /etc/ceph/ceph.pub root@*<new-host>*  
+        $ ssh-copy-id -f -i /etc/ceph/ceph.pub root@192.168.72.100
+        ```
+    - 커맨드
+        ```shell
+        # ceph orch host add <hostname> <IP>
+        $ ceph orch host add node1 192.168.72.100
+        ```
+    - host 추가 확인
+        ```shell
+        $ ceph orch host ls
+        ```
+    - 참고
+        - host 추가로 mon이 추가되는 경우, 기본적으로 각 노드에 있는 `ceph.conf` 파일이 수정되지는 않습니다. (`ceph.conf` 파일에 통신하기 위한 mon addr들이 명시되어 있음)
+        - 각 노드에 있는 ceph daemon들이나, 이미 사용하고 있는 client의 경우는 내부적으로 mon의 추가를 인식하고, 내부적으로 저장하기 때문에 문제 없습니다.
+        - 그러나, 새로운 ceph client 생성시(재부팅 등의 경우도 포함)에는 `ceph.conf` 파일을 참조하기 때문에, 추가된 mon을 알지 못하며, `ceph.conf` 파일 내에 명시된 mon이 죽어 있는 경우는 연결이 되지 않는 경우가 발생할 수 있습니다.
+        - 따라서, mon 추가된 경우, 다음 명령어를 통해 `ceph.conf`를 재생성하고, 이를 client 연결시 사용하시길 바랍니다.
+            ```shell
+            # config 파일 생성
+            $ ceph config generate-minimal-conf > ceph.conf
+            # admin 계정 ceph.client.admin.keyring 파일 생성
+            $ ceph auth get client.admin > ceph.client.admin.keyring
+            ```
 
-	6. osd 추가
-		- osd 추가는 disk 전체 사용을 전제로 하며, disk는 완벽하게 초기화(partition table, partition, lvm 있으면 안됨)가 되어 있어야 합니다. 
-			- disk 초기화
-				```shell
-				# disk는 /dev/sdb 가정
-				$ sgdisk --zap-all /dev/sdb
-				$ dd if=/dev/zero of=/dev/sdb bs=1M count=100 oflag=direct,dsync
-				$ blkdiscard /dev/sdb
-				
-				# 이전에 ceph를 깐 적이 있는 노드라면 다음 커맨드 수행도 필요
-				$ ls /dev/mapper/ceph-* | xargs -I% -- dmsetup remove %
-				$ rm -rf /dev/ceph-*
-				```
-			- disk ceph 추가 가능여부 확인
-				```shell
-				# 해당 명령어 쳤을 때 초기화한 disk가 보여야됨
-				$ ceph orch device ls --refresh
-				```	
-		- 노드 단위로 osd 추가
-			- 노드 별로 osd 배포를 위한 yaml 파일 생성
-			```yaml
-			# osd_localhost.yaml 파일
-			service_type: osd		#osd로 고정
-			service_id: osd_localhost	#마음대로 설정, ex) osd_{hostname}
-			placement:
-				hosts:
-				- localhost	#osd 배포할 hostname 명시
-			data_devices:
-				paths:
-				- /dev/sdb	#osd 배포할 device 명시
-				- /dev/sdc	#osd 배포할 device 명시
-			```	  
-			- yaml apply를 통해 osd 배포
-				```shell
-				$ ceph orch apply osd -i osd_localhost.yaml
-				```	
-			- 확인
-				```shell
-				#osd 추가되었는지 확인   
-				$ ceph -s 
-				$ ceph osd status
-				$ ceph osd tree
-				```
-	7. ceph pool 생성 및 replica size 1로 설정
-		- 원래 replication size는 2나 3이 기본이지만, 최소환경 가정으로 1로 설정
-		- 참고로, replica 1로 하면 ceph -s시 HEALTH_WARN 발생하는데, ceph cluster는 정상작동합니다
-			```shell
-			# replicapool : rbd pool
-			# myfs-metadata, myfs-data0 : cephfs pool
-			# device_health_metrics pool은 ceph cluster 생성시 존재, replica 1로 변경
-			$ ceph osd pool set device_health_metrics size 1
-			
-			# rbd에 사용할 replicapool pool 생성 및 replica 1로 설정
-			# 참고로 pool 생성 과정에서 pg_num,pgp_num 설정(항상 2의 배수로 설정해야함)을 최소 환경을 고려하여 최소로 하였는데, 기본적으로 환경이 클 경우 해당 숫자는 32 or 64 or 그 이상을 추천드립니다.
-			# ceph osd pool create {poolname} {pg_num} {pgp_num} {replication mode}
-			$ ceph osd pool create replicapool 32 32 replicated
-			$ ceph osd pool set replicapool size 1
-			$ rbd pool init replicapool
-			# cephfs에 사용할 myfs-metadata, myfs-data0 pool 생성 및 replica 1로 설정까지 수행
-			$ ceph osd pool create myfs-metadata 32 32 replicated
-			$ ceph osd pool create myfs-data0 8 8 replicated
-			$ ceph osd pool set myfs-metadata size 1
-			$ ceph osd pool set myfs-data0 size 1
-			```
-	8. cephfs mds 데몬 배포
-		```shell
-		# ceph orch apply mds {volumename: filesysetem name} --placement="1 {hostname}"
-		# 해당 방법 이외에 ceph fs volume create {volumename} {placement}을 통해서도 배포할 수는 있음
-		$ ceph orch apply mds myfs --placement="1 localhost"
-		```
-	9. ceph fs 생성
-		```shell
-		# ceph fs new {volumename: filesysetem name} {medatadata pool} {data pool}
-		$ ceph fs new myfs myfs-metadata myfs-data0
-		```
-	10. 확인
-		```shell
-		$ ceph -s
-		$ ceph fs status
-		```
-		########
-		```
-		cephfs name : myfs
-		cephfs pool :
-		data pool : myfs-data0
-		metadata pool : myfs-metadata
-		rbd pool : replicapool
-		```
+2. osd 추가
+    - osd 추가는 disk 전체 사용을 전제로 하며, disk는 완벽하게 초기화(partition table, partition, lvm 있으면 안됨)가 되어 있어야 합니다. 
+        - disk 초기화
+            ```shell
+            # disk는 /dev/sdb 가정
+            $ sgdisk --zap-all /dev/sdb
+            $ dd if=/dev/zero of=/dev/sdb bs=1M count=100 oflag=direct,dsync
+            $ blkdiscard /dev/sdb
+            
+            # 이전에 ceph를 깐 적이 있는 노드라면 다음 커맨드 수행도 필요
+            $ ls /dev/mapper/ceph-* | xargs -I% -- dmsetup remove %
+            $ rm -rf /dev/ceph-*
+            ```
+        - disk ceph 추가 가능여부 확인
+            ```shell
+            # 해당 명령어 쳤을 때 초기화한 disk가 보여야됨
+            $ ceph orch device ls --refresh
+            ```	
+    - 노드 단위로 osd 추가
+        - 노드 별로 osd 배포를 위한 yaml 파일 생성
+        ```yaml
+        # osd_localhost.yaml 파일
+        service_type: osd		#osd로 고정
+        service_id: osd_localhost	#마음대로 설정, ex) osd_{hostname}
+        placement:
+          hosts:
+          - localhost	#osd 배포할 hostname 명시
+        data_devices:
+          paths:
+          - /dev/sdb	#osd 배포할 device 명시
+          - /dev/sdc	#osd 배포할 device 명시
+        ```	  
+        - yaml apply를 통해 osd 배포
+            ```shell
+            $ ceph orch apply osd -i osd_localhost.yaml
+            ```	
+        - 확인
+            ```shell
+            #osd 추가되었는지 확인   
+            $ ceph -s 
+            $ ceph osd status
+            $ ceph osd tree
+            ```
+5. ceph pool 생성 및 replica size 1로 설정
+    - 원래 replication size는 2나 3이 기본이지만, 최소환경 가정으로 1로 설정
+    - 참고로, replica 1로 하면 ceph -s시 HEALTH_WARN 발생하는데, ceph cluster는 정상작동합니다
+        ```shell
+        # replicapool : rbd pool
+        # myfs-metadata, myfs-data0 : cephfs pool
+        # device_health_metrics pool은 ceph cluster 생성시 존재, replica 1로 변경
+        $ ceph osd pool set device_health_metrics size 1
+        
+        # rbd에 사용할 replicapool pool 생성 및 replica 1로 설정
+        # 참고로 pool 생성 과정에서 pg_num,pgp_num 설정(항상 2의 배수로 설정해야함)을 최소 환경을 고려하여 최소로 하였는데, 기본적으로 환경이 클 경우 해당 숫자는 32 or 64 or 그 이상을 추천드립니다.
+        # ceph osd pool create {poolname} {pg_num} {pgp_num} {replication mode}
+        $ ceph osd pool create replicapool 32 32 replicated
+        $ ceph osd pool set replicapool size 1
+        $ rbd pool init replicapool
+        # cephfs에 사용할 myfs-metadata, myfs-data0 pool 생성 및 replica 1로 설정까지 수행
+        $ ceph osd pool create myfs-metadata 32 32 replicated
+        $ ceph osd pool create myfs-data0 8 8 replicated
+        $ ceph osd pool set myfs-metadata size 1
+        $ ceph osd pool set myfs-data0 size 1
+        ```
+6. cephfs mds 데몬 배포
+    ```shell
+    # ceph orch apply mds {volumename: filesysetem name} --placement="1 {hostname}"
+    # 해당 방법 이외에 ceph fs volume create {volumename} {placement}을 통해서도 배포할 수는 있음
+    $ ceph orch apply mds myfs --placement="1 localhost"
+    ```
+7. ceph fs 생성
+    ```shell
+    # ceph fs new {volumename: filesysetem name} {medatadata pool} {data pool}
+    $ ceph fs new myfs myfs-metadata myfs-data0
+    ```
+8. 확인
+    ```shell
+    $ ceph -s
+    $ ceph fs status
+    ```
+########
+```
+cephfs name : myfs
+cephfs pool :
+data pool : myfs-data0
+metadata pool : myfs-metadata
+rbd pool : replicapool
+```
