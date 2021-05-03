@@ -1,4 +1,4 @@
-#prolinux 8.2 기준 ceph v15.2.8 설치 간단 가이드
+# prolinux 8.2 기준 ceph v15.2.8 설치 간단 가이드
 
 ## 필수 패키지
 - 다음 패키지는 ceph 설치에 있어서 반드시 필요하므로 ceph를 설치할 모든 노드에서 package 존재 유무 확인 및 설치해주시길 바랍니다. 없으면 설치 중 에러 발생함
@@ -69,7 +69,7 @@
 		$ ceph -s
 		```
 ---
-## ceph 추가 설정
+## ceph 추가설정
 1. 다른 노드를 ceph cluster에 추가 (기존 cephadm을 통한 ceph 설치 방법과 동일)
     - 다음 방법을 통해 노드를 ceph cluster에 추가해야 해당 노드에 ceph daemon들을 추후 설치할 수 있습니다.
     - 참고로 모니터는 5개, mgr은 2 or 3개?가 기본 설정이라 노드를 추가하면 자동으로 해당 노드들에 ceph daemon(mon, mgr)을 배포합니다. 단, mon 간의 quorum을 형성해야 하기 때문에 1,3,5와 같은 방식으로 추가됩니다.
