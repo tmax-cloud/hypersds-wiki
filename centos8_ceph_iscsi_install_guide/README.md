@@ -23,7 +23,7 @@
 
 - ceph-iscsi(gwcli)를 설치할 때, HA를 위해 iSCSI gateway 노드가 2대 이상 있어야 합니다.
 
-- [아래 2개의 repository](##repository)에 접근이 필요합니다.
+- [아래 2개의 repository](#repository)에 접근이 필요합니다.
 
 ## Initiator timeout을 막기 위한 Ceph 세팅
 - iSCSI initiator가 timeout 되는 것을 방지하기 위해 Ceph 단에서 heartbeat 세팅을 해 주는 것이 좋습니다.
