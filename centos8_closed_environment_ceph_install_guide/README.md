@@ -118,7 +118,7 @@
 
     ### 폐쇄망 환경의 registry에 이미지 업로드 방법
     > 폐쇄망 환경에 이미 private registry가 동작하고 있다고 가정합니다. ex) registry 주소: 192.168.70.100:5000
-    - private reistry 구성 방법 : https://github.com/tmax-cloud/install-registry
+    - private reistry 구성 방법 : https://github.com/tmax-cloud/install-registry/blob/5.0/podman.md
     1. private registry가 인증 없이 http를 사용할 경우, 모든 노드에서 `/etc/containers/registries.conf`의 `[registries.insecure]` 항목에 private registry를 추가합니다.
         ```shell
         #/etc/containers/registries.conf
