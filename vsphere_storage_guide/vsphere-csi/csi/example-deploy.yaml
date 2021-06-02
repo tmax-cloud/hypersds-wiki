@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vsan-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vsan-nginx
+  template:
+    metadata:
+      labels:
+        app: vsan-nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        volumeMounts:
+        - name: vsan
+          mountPath: /mnt/vsan
+      volumes:
+      - name: vsan
+        persistentVolumeClaim:
+          claimName: example-block-pvc
