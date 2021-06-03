@@ -199,7 +199,7 @@
         fsid = 239fd88c-c42b-11eb-8058-5254001ff4e5      # fsid
         mon_host = [v2:192.168.70.100:3300/0,v1:192.168.70.100:6789/0]
     ```
-2. ceph daemon들이 배포된 모든 노드에 cephadm image를 다운로드합니다. (참조 : [ceph 설치](##ceph-설치) > 1. cephadm image 다운로드)
+2. ceph daemon들이 배포된 모든 노드에 cephadm image를 다운로드합니다. (참고 : [ceph 설치](./#ceph-설치) > 1. cephadm image 다운로드)
     - 처음 ceph 배포하는데 사용한 노드를 포함하여 host 추가를 통해 ceph에 추가시킨 모든 노드에 cephadm image를 다운로드합니다.
 3. 모든 노드에서 rm-cluster 을 사용하여 ceph 데몬들을 제거합니다.
     - 해당 명령은 명령을 수행하는 노드의 /etc/ceph/ , /var/log/ceph, /var/lib/ceph 에 존재하는 현재 ceph cluster 데이터를 완전히 삭제합니다.
@@ -225,5 +225,5 @@
 
     ```
 4. osd로 사용된 디스크들의 재사용을 위해서는 초기화 과정이 필요합니다.
-    - 디스크 초기화 작업 참조 : [ceph 추가설정](##ceph-추가설정) > 2.osd 추가 > disk 초기화
+    - 디스크 초기화 작업 참고 : [ceph 추가설정](./#ceph-추가설정) > 2.osd 추가 > disk 초기화
 
