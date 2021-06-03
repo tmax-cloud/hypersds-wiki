@@ -179,11 +179,51 @@
     $ ceph -s
     $ ceph fs status
     ```
-########
-```
-cephfs name : myfs
-cephfs pool :
-data pool : myfs-data0
-metadata pool : myfs-metadata
-rbd pool : replicapool
-```
+    ```
+    cephfs name : myfs
+    cephfs pool :
+    data pool : myfs-data0
+    metadata pool : myfs-metadata
+    rbd pool : replicapool
+    ```
+## ceph cluster 제거
+> ceph cluster를 완전히 제거할 경우에만 사용바랍니다.
+1. ceph cluster의 fsid를 확인합니다. (ceph -s 또는 ceph.conf의 fsid 참고)
+    ```shell
+    $ ceph -s
+    cluster:
+        id:     239fd88c-c42b-11eb-8058-5254001ff4e5     # fsid
+    ...
+    $ cat /etc/ceph/ceph.conf
+    [global]
+        fsid = 239fd88c-c42b-11eb-8058-5254001ff4e5      # fsid
+        mon_host = [v2:192.168.70.100:3300/0,v1:192.168.70.100:6789/0]
+    ```
+2. ceph daemon들이 배포된 모든 노드에 cephadm image를 다운로드합니다. (참조 : [ceph 설치](##ceph-설치) > 1. cephadm image 다운로드)
+    - 처음 ceph 배포하는데 사용한 노드를 포함하여 host 추가를 통해 ceph에 추가시킨 모든 노드에 cephadm image를 다운로드합니다.
+3. 모든 노드에서 rm-cluster 을 사용하여 ceph 데몬들을 제거합니다.
+    - 해당 명령은 명령을 수행하는 노드의 /etc/ceph/ , /var/log/ceph, /var/lib/ceph 에 존재하는 현재 ceph cluster 데이터를 완전히 삭제합니다.
+    - 또한 systemctl에 등록된 ceph daemon service 들을 삭제하여 노드에서 수행되는 ceph daemon들을 완전히 제거합니다.
+    ```shell
+    # ./cephadm rm-cluster --fsid {ceph-cluster fsid} --force
+    $ ./cephadm rm-cluster --fsid 239fd88c-c42b-11eb-8058-5254001ff4e5 --force
+    ```
+    ```shell
+    # rm-cluster 수행전에 systemctl에 등록된 ceph daemon을 확인하면 다음과 같이 ceph service들이 보입니다.
+    $ systemctl | grep ceph
+    ceph-239fd88c-c42b-11eb-8058-5254001ff4e5@mgr.master1.yxnhmf.service                                             loaded active running   Ceph mgr.master1.yxnhmf for 239fd88c-c42b-11eb-8058-5254001ff4e5
+    ceph-239fd88c-c42b-11eb-8058-5254001ff4e5@mon.master1.service                                                    loaded active running   Ceph mon.master1 for 239fd88c-c42b-11eb-8058-5254001ff4e5
+    ceph-239fd88c-c42b-11eb-8058-5254001ff4e5@node-exporter.master1.service                                          loaded active running   Ceph 
+    ...
+    ceph-239fd88c-c42b-11eb-8058-5254001ff4e5.target                                                                 loaded active active    Ceph cluster 239fd88c-c42b-11eb-8058-5254001ff4e5
+    ceph.target                                                                                                      loaded active active    All Ceph clusters and services
+
+    # rm-cluster 이후 systemctl에 등록되어 있는 ceph 관련 daemon 확인
+    # 다음과 같이 ceph.target을 제외한 모든 service 제거 확인됨 (ceph.target만으로는 ceph daemon 생성하지 않음)
+    $ systemctl | grep ceph
+    ceph.target                                                                              loaded active     active          All Ceph clusters and services
+
+    ```
+4. osd로 사용된 디스크들의 재사용을 위해서는 초기화 과정이 필요합니다.
+    - 디스크 초기화 작업 참조 : [ceph 추가설정](##ceph-추가설정) > 2.osd 추가 > disk 초기화
+
