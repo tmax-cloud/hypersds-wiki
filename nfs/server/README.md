@@ -28,7 +28,7 @@
 
 ```
 # mkdir -p /mnt/nfs-shared-dir
-# chown nfsnobody:nfsnobody /mnt/nfs-shared-dir
+# chown -R nobody:nobody /mnt/nfs-shared-dir
 # chmod 777 /mnt/nfs-shared-dir
 ```
 
