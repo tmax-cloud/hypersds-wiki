@@ -64,8 +64,8 @@
 	3. 여기까지 완료하면 cephadm이 깔린 노드 하나에 ceph를 설치한 것
 	4. 설치 확인
 		```shell
-		$ ceph orch ps
-		$ ceph orch ls
+		$ ceph orch ps --refresh
+		$ ceph orch ls --refresh
 		$ ceph -s
 		```
 ---
