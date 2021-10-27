@@ -33,6 +33,46 @@
     - yaml 배포시 권장하는 **기본값**: `{namespace}/{pvcName}/`
       - namespace directory 아래 pvc 별로 directory가 생성되어 nfs 서버 내 데이터 관리가 용이할 수 있습니다.
 
+## 폐쇄망 구축 가이드
+
+- nfs-subdir-external-provisioner 도커 이미지를 미리 준비합니다.
+- nfs-subdir-external-provisioner 배포 yaml를 미리 준비합니다.
+
+작업 디렉토리 생성 및 환경 설정
+
+``` shell
+$ mkdir -p ~/nfs-install
+$ export NFS_HOME=~/nfs-install
+$ export NFS_PROVISIONER_VERSION=v4.0.0
+$ cd $NFS_HOME
+```
+
+외부 네트워크 통신이 가능한 환경에서 도커 이미지를 다운로드
+
+``` shell
+$ sudo docker pull gcr.io/k8s-staging-sig-storage/nfs-subdir-external-provisioner:${NFS_PROVISIONER_VERSION}
+$ sudo docker save gcr.io/k8s-staging-sig-storage/nfs-subdir-external-provisioner:${NFS_PROVISIONER_VERSION} > nfs_${NFS_PROVISIONER_VERSION}.tar
+```
+
+배포 yaml 다운로드
+
+``` shell
+$ git clone https://github.com/tmax-cloud/hypersds-wiki.git
+$ mv hypersds-wiki/nfs/provisioner/deploy/ .
+$ rm -rf hypersds-wiki/
+```
+
+다운로드 받은 파일들을 폐쇄망 환경으로 이동시킨 뒤 사용하려는 registry에 이미지를 push
+
+``` shell
+$ sudo docker load < nfs_${NFS_PROVISIONER_VERSION}.tar
+
+$ export REGISTRY=123.456.789.00:5000
+$ sudo docker tag gcr.io/k8s-staging-sig-storage/nfs-subdir-external-provisioner:${NFS_PROVISIONER_VERSION} ${REGISTRY}/gcr.io/k8s-staging-sig-storage/nfs-subdir-external-provisioner:${NFS_PROVISIONER_VERSION}
+
+$ sudo docker push ${REGISTRY}/gcr.io/k8s-staging-sig-storage/nfs-subdir-external-provisioner:${NFS_PROVISIONER_VERSION}
+```
+
 ## 배포 가이드
 
 sample yaml 설정들의 **기본값**은 아래와 같습니다.
