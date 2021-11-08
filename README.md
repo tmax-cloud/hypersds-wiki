@@ -17,7 +17,6 @@ Welcome to the cloud storage team wiki!
 #### Hypercloud
 
 - [hypersds-operator](https://github.com/tmax-cloud/hypersds-operator)
-- [hypersds-provisioner](https://github.com/tmax-cloud/hypersds-provisioner)
 - [hcsctl](https://github.com/tmax-cloud/hypercloud-sds)
 
 #### VM Image
@@ -28,8 +27,10 @@ Welcome to the cloud storage team wiki!
 ### 설치 가이드
 
 - [rook 설치 가이드](https://github.com/tmax-cloud/install-rookceph)
+  - [English ver](https://github.com/tmax-cloud/hypercloud_infra_installer#hypercloud-storage-hcsctl)
 - [velero 설치 가이드](https://github.com/tmax-cloud/install-velero)
 
 ## Archived Repositories
 
+- [hypersds-provisioner](https://github.com/tmax-cloud/hypersds-provisioner)
 - [hypercloud-storage-installer](https://github.com/tmax-cloud/hypercloud-storage-installer)
