@@ -63,3 +63,9 @@ MaxLinesPerSecond=100
 - `/var/log/ceph_health.log` 파일에 log가 쌓이는지 확인
 	
 ## 7. 동작 확인
+- Ceph zabbix discovery & send 수행
+```
+# ceph zabbix discovery
+# ceph zabbix send
+```
+- Zabbix monitoring 탭의 latest data에서 데이터가 잘 전달되는지 확인
