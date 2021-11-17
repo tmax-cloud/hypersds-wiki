@@ -1,0 +1,16 @@
+[Unit]
+Description=Ceph Health Logger
+After=syslog.target
+After=ceph.target
+After=network.target
+
+[Service]
+Type=simple
+Restart=on-failure
+KillMode=control-group
+ExecStart=/usr/sbin/ceph_health_logger.sh
+ExecStop=/bin/kill -SIGTERM $MAINPID
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
