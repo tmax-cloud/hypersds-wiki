@@ -9,6 +9,13 @@ Zabbix 연동 가이드
 	- **ceph-health-logger.service**: systemd service 등록 파일 => `/usr/lib/systemd/system/` 위치에 저장
 - zabbix port: 10051
 - zabbix node 환경: CentOS 8.4.2105
+
+## 0. Zabbix node에 Ceph client 설치
+- `ceph-common 15.2.8` 버전 설치
+- Ceph cluster node의 `/etc/ceph/` 위치의 내용들을 Zabbix node로 복사
+	- `ceph.client.admin.keyring`
+	- `ceph.conf`
+	- `ceph.pub`
 	
 ## 1. 전달받은 template을 Zabbix에 import
 
@@ -45,6 +52,10 @@ Zabbix 연동 가이드
 ServerActive=127.0.0.1
 Hostname=ceph-<fsid>
 MaxLinesPerSecond=100
+```
+- 설정 후 zabbix-agent service 재시작
+```
+# systemctl restart zabbix-agent
 ```
 	
 ## 6. ceph-health-logger 서비스 실행
