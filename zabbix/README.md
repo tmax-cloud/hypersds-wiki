@@ -4,6 +4,7 @@ Zabbix 연동 가이드
 
 - agent 설치 파일 리스트
 	- **ceph_health_logger.sh**: logger shell script => `/usr/sbin/` 위치에 저장
+		- `chmod a+x ceph_health_logger.sh` 명령어로 실행권한 부여
 	- **zabbix_template_v6.xml**: zabbix template
 	- **ceph_health**: logrotate 설정파일 => `/etc/logrotate.d/` 위치에 저장
 	- **ceph-health-logger.service**: systemd service 등록 파일 => `/usr/lib/systemd/system/` 위치에 저장
