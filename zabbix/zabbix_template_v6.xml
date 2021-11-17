@@ -3084,8 +3084,8 @@
             <dependencies/>
         </trigger>
         <trigger>
-            <expression>{ceph-mgr Zabbix module v6:logrt[/var/log/ceph_health.log].regexp(OSD_HOST_DOWN,1m)}=1</expression>
-            <name>OSD_HOST_DOWN on: {ITEM.VALUE}</name>
+            <expression>{ceph-mgr Zabbix module v6:logrt[/var/log/ceph_health.log].regexp(OSD_.*_DOWN,1m)}=1</expression>
+            <name>OSD_&lt;CRUSH_TYPE&gt;_DOWN on: {ITEM.VALUE}</name>
             <url/>
             <status>0</status>
             <priority>4</priority>
