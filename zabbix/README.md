@@ -64,6 +64,7 @@ MaxLinesPerSecond=100
 	
 ## 7. 동작 확인
 - Ceph zabbix discovery & send 수행
+	- `ceph zabbix send` 명령어는 active mgr 노드에서만 수행 가능
 ```
 # ceph zabbix discovery
 # ceph zabbix send
