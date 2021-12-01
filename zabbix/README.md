@@ -8,15 +8,19 @@ Zabbix 연동 가이드
 	- **zabbix_template_v6.xml**: zabbix template
 	- **ceph_health**: logrotate 설정파일 => `/etc/logrotate.d/` 위치에 저장
 	- **ceph-health-logger.service**: systemd service 등록 파일 => `/usr/lib/systemd/system/` 위치에 저장
-- zabbix port: 10051
+- zabbix port: 10051 (ceph zabbix), 10050 (zabbix agent)
 - zabbix node 환경: CentOS 8.4.2105
 
-## 0. Zabbix node에 Ceph client 설치
+## 0. Zabbix node에 Ceph client와 Zabbix agent 설치
 - `ceph-common 15.2.8` 버전 설치
 - Ceph cluster node의 `/etc/ceph/` 위치의 내용들을 Zabbix node로 복사
 	- `ceph.client.admin.keyring`
 	- `ceph.conf`
 	- `ceph.pub`
+- Zabbix agent 설치
+```
+# dnf install zabbix-agent
+```
 	
 ## 1. 전달받은 template을 Zabbix에 import
 
@@ -31,7 +35,7 @@ Zabbix 연동 가이드
 ```
 - zabbix identifier, zabbix_host 설정
 ```
-# ceph zabbix config-set zabbix_host <zabbix 서버의 IP>
+# ceph zabbix config-set zabbix_host <zabbix server의 IP>
 # ceph zabbix config-set identifier ceph-<fsid>
 ```
 	
@@ -50,9 +54,11 @@ Zabbix 연동 가이드
 ## 5. Zabbix node에서 zabbix-agent 설정
 - `/etc/zabbix/zabbix_agentd.conf` 설정변경
 ```
-ServerActive=127.0.0.1
+Server=<zabbix server의 IP>
+ServerActive=<zabbix server의 IP>
 Hostname=ceph-<fsid>
 MaxLinesPerSecond=100
+AllowRoot=1
 ```
 - 설정 후 zabbix-agent service 재시작
 ```
