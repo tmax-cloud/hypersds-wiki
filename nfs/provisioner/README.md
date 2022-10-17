@@ -248,7 +248,7 @@ parameters:
 $ kubectl apply -f deploy/class.yaml
 ```
 
-### nfs mount option이 별도로 지정 필요한 경우
+### nfs mount option
 
 - `deployment.yaml` 과 `class.yaml` 변경이 필요합니다.
 
@@ -315,8 +315,8 @@ parameters:
   onDelete: delete
   # you can set nfs subdirectory path pattern
   pathPattern: "${.PVC.namespace}/${.PVC.name}"
-  mountOptions:
-    - sec=none
+mountOptions:
+  - sec=none
 ```
 
 ## 사용 가이드
