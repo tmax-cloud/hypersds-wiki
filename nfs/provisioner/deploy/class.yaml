@@ -8,5 +8,5 @@ provisioner: k8s-sigs.io/nfs-subdir-external-provisioner
 parameters:
   # set 'retain' if you want to save the directory
   onDelete: delete
-  # you can set nfs subdirectory path pattern
-  pathPattern: "${.PVC.namespace}/${.PVC.name}"
+  # When set to false your PVs will not be archived by the provisioner upon deletion of the PVC.
+  archiveOnDelete: "false"

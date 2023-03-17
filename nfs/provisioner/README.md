@@ -24,14 +24,14 @@
     - taint 나 toleration property를 사용하는 경우에는 nfs 서버를 통해 volume provisioning 기능 제공할 k8s 노드에만 해당 패키지를 설치해주셔도 됩니다.
 3. NFS 서버사용을 위해 사전에 필요한 접속 정보들은 아래와 같습니다.
     - NFS server hostname
-    - NFS server exported path
+    - NFS server exported pathㅋ
 4. NFS server exported path 내에 생성될 sub directory의 패턴에 대해 미리 정의 및 논의가 필요합니다.
     - **helm 차트를 사용할 경우에는 sub directory 패턴을 사용자 지정할 수 없습니다.**
       - 해당 기능이 master branch에 구현 되었으나 아직 릴리즈되지 않아서 릴리즈 후 재 가이드 예정입니다.
     - helm 차트 사용시 지정된 **기본값**: `{namespace-pvcName-pvName}/`
       - nfs 서버 내에서 pvc 마다 위의 이름 패턴으로 directory가 생성됩니다.
-    - yaml 배포시 권장하는 **기본값**: `{namespace}/{pvcName}/`
-      - namespace directory 아래 pvc 별로 directory가 생성되어 nfs 서버 내 데이터 관리가 용이할 수 있습니다.
+    - yaml 배포시 권장하는 **기본값**: `{namespace-pvcName-pvName}/`
+      - ***(변경사항) 기존에 storageclass에서 `pathPatthern`을 통해 권장하던 `{namespace}/{pvcName}`의 경우, pvc delete시 nfs-provisioner에서 실제 폴더를 삭제하지 않는 경우가 특정 버전에서 발생하여 helm과 같은 기본값으로 설정을 변경하기 위해 제거하였습니다.***
 
 ## 폐쇄망 구축 가이드
 
@@ -157,8 +157,8 @@ provisioner: k8s-sigs.io/nfs-subdir-external-provisioner
 parameters:
   # set 'retain' if you want to save the directory
   onDelete: delete
-  # you can set nfs subdirectory path pattern
-  pathPattern: "${.PVC.namespace}/${.PVC.name}"
+  # When set to false your PVs will not be archived by the provisioner upon deletion of the PVC.
+  archiveOnDelete: "false"
 ```
 
 ``` shell
@@ -240,8 +240,8 @@ provisioner: nfs-subdir-external-provisioner
 parameters:
   # set 'retain' if you want to save the directory
   onDelete: delete
-  # you can set nfs subdirectory path pattern
-  pathPattern: "${.PVC.namespace}/${.PVC.name}"
+  # When set to false your PVs will not be archived by the provisioner upon deletion of the PVC.
+  archiveOnDelete: "false"
 ```
 
 ``` shell
@@ -313,8 +313,8 @@ provisioner: k8s-sigs.io/nfs-subdir-external-provisioner
 parameters:
   # set 'retain' if you want to save the directory
   onDelete: delete
-  # you can set nfs subdirectory path pattern
-  pathPattern: "${.PVC.namespace}/${.PVC.name}"
+  # When set to false your PVs will not be archived by the provisioner upon deletion of the PVC.
+  archiveOnDelete: "false"
 mountOptions:
   - sec=none
 ```
